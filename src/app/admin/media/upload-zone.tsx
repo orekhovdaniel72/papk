@@ -2,13 +2,13 @@
 
 import { useRef, useState, useTransition, DragEvent, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, AlertCircle } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { saveAsset } from "@/app/actions/media";
 import { cn } from "@/lib/utils";
 
-type UploadState = { name: string; progress: "uploading" | "done" | "error" };
+type UploadState = { name: string; progress: "uploading" | "done" | "error"; error?: string };
 
 function getMediaMeta(file: File): Promise<{ width?: number; height?: number; duration?: number }> {
   return new Promise((resolve) => {
@@ -38,32 +38,59 @@ export function UploadZone() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [uploads, setUploads] = useState<UploadState[]>([]);
+  const [globalError, setGlobalError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   async function uploadFiles(files: FileList | File[]) {
+    setGlobalError(null);
+
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+
+    // Явная проверка сессии
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData.user) {
+      const msg = authError?.message ?? "Сессия не найдена";
+      console.error("[upload] auth.getUser failed:", msg);
+      setGlobalError(`Ошибка авторизации: ${msg}. Обнови страницу.`);
+      return;
+    }
+    const user = authData.user;
+    console.log("[upload] user:", user.id);
 
     const list = Array.from(files).filter(
       (f) => f.type.startsWith("image/") || f.type.startsWith("video/")
     );
-    if (!list.length) return;
+    if (!list.length) {
+      setGlobalError("Поддерживаются только фото и видео.");
+      return;
+    }
 
     setUploads(list.map((f) => ({ name: f.name, progress: "uploading" })));
 
+    let allDone = true;
     await Promise.all(
       list.map(async (file, i) => {
         const path = `${user.id}/${Date.now()}-${sanitizePath(file.name)}`;
-        const { error } = await supabase.storage.from("media").upload(path, file);
+        console.log("[upload] uploading to path:", path);
 
-        if (error) {
-          setUploads((prev) => prev.map((u, idx) => idx === i ? { ...u, progress: "error" } : u));
+        const { error: storageError } = await supabase.storage
+          .from("media")
+          .upload(path, file);
+
+        if (storageError) {
+          console.error("[upload] storage error:", storageError.message);
+          setUploads((prev) =>
+            prev.map((u, idx) =>
+              idx === i ? { ...u, progress: "error", error: storageError.message } : u
+            )
+          );
+          allDone = false;
           return;
         }
 
+        console.log("[upload] uploaded, saving metadata...");
         const { width, height, duration } = await getMediaMeta(file);
-        await saveAsset({
+        const result = await saveAsset({
           name: file.name,
           type: file.type.startsWith("image/") ? "image" : "video",
           storage_path: path,
@@ -74,12 +101,28 @@ export function UploadZone() {
           duration_sec: duration,
         });
 
-        setUploads((prev) => prev.map((u, idx) => idx === i ? { ...u, progress: "done" } : u));
+        if (result?.error) {
+          console.error("[upload] saveAsset error:", result.error);
+          setUploads((prev) =>
+            prev.map((u, idx) =>
+              idx === i ? { ...u, progress: "error", error: result.error } : u
+            )
+          );
+          allDone = false;
+          return;
+        }
+
+        setUploads((prev) =>
+          prev.map((u, idx) => (idx === i ? { ...u, progress: "done" } : u))
+        );
       })
     );
 
-    startTransition(() => router.refresh());
-    setTimeout(() => setUploads([]), 2000);
+    if (allDone) {
+      startTransition(() => router.refresh());
+      setTimeout(() => setUploads([]), 1500);
+    }
+    // При ошибках — список остаётся, чтобы пользователь видел что пошло не так
   }
 
   function onDrop(e: DragEvent) {
@@ -128,18 +171,32 @@ export function UploadZone() {
         onChange={onChange}
       />
 
+      {/* Глобальная ошибка (сессия, тип файла) */}
+      {globalError && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 size-4 shrink-0" />
+          {globalError}
+        </div>
+      )}
+
+      {/* Прогресс по файлам */}
       {uploads.length > 0 && (
         <ul className="space-y-1.5">
           {uploads.map((u) => (
-            <li key={u.name} className="flex items-center gap-2 text-sm">
-              {u.progress === "uploading" ? (
-                <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
-              ) : u.progress === "done" ? (
-                <span className="size-3.5 shrink-0 text-green-500">✓</span>
-              ) : (
-                <span className="size-3.5 shrink-0 text-destructive">✗</span>
+            <li key={u.name} className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-2 text-sm">
+                {u.progress === "uploading" ? (
+                  <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
+                ) : u.progress === "done" ? (
+                  <span className="size-3.5 shrink-0 text-green-500">✓</span>
+                ) : (
+                  <span className="size-3.5 shrink-0 text-destructive">✗</span>
+                )}
+                <span className="truncate text-muted-foreground">{u.name}</span>
+              </div>
+              {u.error && (
+                <p className="pl-5 text-xs text-destructive">{u.error}</p>
               )}
-              <span className="truncate text-muted-foreground">{u.name}</span>
             </li>
           ))}
         </ul>
