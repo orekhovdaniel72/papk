@@ -1,26 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, Layers, Link2, ShieldCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { site } from "@/lib/site";
 import { Button } from "@/components/ui/button";
-
-const features = [
-  {
-    icon: Layers,
-    title: "Подборки под задачу",
-    text: "Разные резюме из одной медиатеки — свой состав и порядок работ под каждую вакансию.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Защищённый показ",
-    text: "Фото и видео открываются красиво, но без штатного скачивания и с водяным знаком.",
-  },
-  {
-    icon: Link2,
-    title: "Ссылки с доступом",
-    text: "Делитесь резюме по ссылке — с паролем и сроком. Соседние подборки остаются скрыты.",
-  },
-];
 
 export default function Home() {
   return (
@@ -30,73 +12,46 @@ export default function Home() {
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
       >
-        <div className="absolute left-1/2 top-[-10%] h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl dark:bg-primary/15" />
+        <div className="absolute left-1/2 top-[-10%] h-[42rem] w-[42rem] -translate-x-1/2 rounded-full bg-primary/8 blur-3xl dark:bg-primary/12" />
         <div
-          className="absolute inset-0 opacity-[0.18] [mask-image:radial-gradient(60%_50%_at_50%_30%,black,transparent)]"
+          className="absolute inset-0 opacity-[0.14] [mask-image:radial-gradient(55%_45%_at_50%_25%,black,transparent)]"
           style={{
             backgroundImage:
               "radial-gradient(currentColor 1px, transparent 1px)",
-            backgroundSize: "22px 22px",
+            backgroundSize: "24px 24px",
             color: "var(--muted-foreground)",
           }}
         />
       </div>
 
-      {/* Hero */}
-      <section className="mx-auto flex w-full max-w-6xl flex-col items-center px-6 pb-20 pt-24 text-center sm:pt-32">
+      {/* Основной контент */}
+      <section className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-start justify-center px-6 pb-24 pt-20 sm:pt-28">
         <div className="animate-in fade-in slide-in-from-bottom-3 duration-700">
-          <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/60 px-4 py-1.5 text-xs font-medium tracking-wide text-muted-foreground backdrop-blur">
-            <span className="size-1.5 rounded-full bg-primary" />
-            {site.role} · Портфолио
+          <span className="text-sm font-medium tracking-widest text-muted-foreground uppercase">
+            {site.role}
           </span>
         </div>
 
-        <h1 className="animate-in fade-in slide-in-from-bottom-4 mt-7 max-w-3xl text-balance text-5xl font-semibold leading-[1.05] tracking-tight duration-700 sm:text-6xl md:text-7xl">
-          {site.tagline}
+        <h1 className="animate-in fade-in slide-in-from-bottom-4 mt-5 text-6xl font-semibold leading-none tracking-tight duration-700 sm:text-8xl md:text-9xl">
+          {site.name}
         </h1>
 
-        <p className="animate-in fade-in slide-in-from-bottom-5 mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground duration-1000">
-          {site.description}
+        <p className="animate-in fade-in slide-in-from-bottom-5 mt-8 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground duration-1000">
+          {/*
+            Художница меняет этот текст под себя.
+            Здесь — краткое профессиональное представление.
+          */}
+          Создаю 3D-персонажей, окружения и визуализации для игр, кино и
+          брендинга. Открыта к проектам и коллаборациям.
         </p>
 
-        <div className="animate-in fade-in slide-in-from-bottom-6 mt-9 flex flex-col items-center gap-3 duration-1000 sm:flex-row">
-          <Button asChild size="lg" className="group rounded-full px-7">
-            <Link href="/login">
-              Войти в кабинет
+        <div className="animate-in fade-in slide-in-from-bottom-6 mt-10 flex flex-col gap-3 duration-1000 sm:flex-row">
+          <Button asChild size="lg" className="group rounded-full px-8">
+            <a href={`mailto:${site.email}`}>
+              Написать мне
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            </a>
           </Button>
-          <Button
-            asChild
-            size="lg"
-            variant="outline"
-            className="rounded-full px-7"
-          >
-            <a href={`mailto:${site.email}`}>Связаться</a>
-          </Button>
-        </div>
-      </section>
-
-      {/* Ценности */}
-      <section className="mx-auto w-full max-w-6xl px-6 pb-28">
-        <div className="grid gap-4 sm:grid-cols-3">
-          {features.map((f, i) => (
-            <div
-              key={f.title}
-              className="animate-in fade-in slide-in-from-bottom-4 group rounded-2xl border border-border/70 bg-card/50 p-6 text-left backdrop-blur-sm transition-colors hover:bg-card"
-              style={{ animationDelay: `${150 + i * 120}ms` }}
-            >
-              <div className="flex size-11 items-center justify-center rounded-xl border border-border/70 bg-background text-foreground transition-colors group-hover:border-primary/40">
-                <f.icon className="size-5" />
-              </div>
-              <h3 className="mt-4 text-base font-semibold tracking-tight">
-                {f.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {f.text}
-              </p>
-            </div>
-          ))}
         </div>
       </section>
     </div>
