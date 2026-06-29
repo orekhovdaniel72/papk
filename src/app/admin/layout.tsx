@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Images, FileText, Link2, LogOut } from "lucide-react";
+import { Images, LogOut } from "lucide-react";
 
-import { site } from "@/lib/site";
 import { logout } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 
@@ -10,11 +9,10 @@ export const metadata: Metadata = {
   title: { default: "Кабинет", template: `%s · Кабинет` },
 };
 
+// Навигация растёт с этапами — пока только готовые разделы
 const navItems = [
   { href: "/admin", label: "Обзор", icon: Images },
   { href: "/admin/media", label: "Медиатека", icon: Images },
-  { href: "/admin/resumes", label: "Резюме", icon: FileText },
-  { href: "/admin/links", label: "Ссылки", icon: Link2 },
 ];
 
 export default function AdminLayout({

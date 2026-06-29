@@ -10,21 +10,38 @@ import { cn } from "@/lib/utils";
 
 type UploadState = { name: string; progress: "uploading" | "done" | "error"; error?: string };
 
+const IMAGE_EXTS = ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif", "avif", "tif", "tiff"];
+const VIDEO_EXTS = ["mp4", "mov", "webm", "avi", "mkv", "m4v", "3gp", "wmv"];
+
+function fileExt(filename: string) {
+  return filename.split(".").pop()?.toLowerCase() ?? "";
+}
+
+function isMedia(file: File): boolean {
+  if (file.type.startsWith("image/") || file.type.startsWith("video/")) return true;
+  const ext = fileExt(file.name);
+  return IMAGE_EXTS.includes(ext) || VIDEO_EXTS.includes(ext);
+}
+
+function mediaType(file: File): "image" | "video" {
+  if (file.type.startsWith("video/")) return "video";
+  const ext = fileExt(file.name);
+  return VIDEO_EXTS.includes(ext) ? "video" : "image";
+}
+
 function getMediaMeta(file: File): Promise<{ width?: number; height?: number; duration?: number }> {
   return new Promise((resolve) => {
-    if (file.type.startsWith("image/")) {
+    if (mediaType(file) === "image") {
       const img = new Image();
       img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
       img.onerror = () => resolve({});
       img.src = URL.createObjectURL(file);
-    } else if (file.type.startsWith("video/")) {
+    } else {
       const video = document.createElement("video");
       video.onloadedmetadata = () =>
         resolve({ width: video.videoWidth, height: video.videoHeight, duration: video.duration });
       video.onerror = () => resolve({});
       video.src = URL.createObjectURL(file);
-    } else {
-      resolve({});
     }
   });
 }
@@ -57,11 +74,11 @@ export function UploadZone() {
     const user = authData.user;
     console.log("[upload] user:", user.id);
 
-    const list = Array.from(files).filter(
-      (f) => f.type.startsWith("image/") || f.type.startsWith("video/")
-    );
+    const list = Array.from(files).filter(isMedia);
     if (!list.length) {
-      setGlobalError("Поддерживаются только фото и видео.");
+      const names = Array.from(files).map((f) => `${f.name} (${f.type || "no-type"})`).join(", ");
+      console.error("[upload] unsupported files:", names);
+      setGlobalError(`Неподдерживаемый формат. Получили: ${names}`);
       return;
     }
 
@@ -92,7 +109,7 @@ export function UploadZone() {
         const { width, height, duration } = await getMediaMeta(file);
         const result = await saveAsset({
           name: file.name,
-          type: file.type.startsWith("image/") ? "image" : "video",
+          type: mediaType(file),
           storage_path: path,
           size_bytes: file.size,
           mime_type: file.type,
