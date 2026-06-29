@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Lock } from "lucide-react";
 
 import { site } from "@/lib/site";
 
@@ -16,13 +17,13 @@ export function SiteFooter() {
           >
             {site.email}
           </a>
-          {/* Вход в кабинет — только для художника, намеренно скрытая ссылка */}
           <Link
             href="/login"
-            className="opacity-30 transition-opacity hover:opacity-70"
+            className="opacity-40 transition-opacity hover:opacity-100"
             aria-label="Войти в кабинет"
+            title="Войти в кабинет"
           >
-            ·
+            <Lock className="size-3.5" />
           </Link>
         </div>
       </div>
