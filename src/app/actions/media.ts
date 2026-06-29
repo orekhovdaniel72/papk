@@ -49,6 +49,9 @@ export async function saveAsset(input: {
   storage_path: string;
   size_bytes: number;
   mime_type: string;
+  width?: number;
+  height?: number;
+  duration_sec?: number;
 }): Promise<{ error?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

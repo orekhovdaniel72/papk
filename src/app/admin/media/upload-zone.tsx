@@ -62,14 +62,16 @@ export function UploadZone() {
           return;
         }
 
-        const meta = await getMediaMeta(file);
+        const { width, height, duration } = await getMediaMeta(file);
         await saveAsset({
           name: file.name,
           type: file.type.startsWith("image/") ? "image" : "video",
           storage_path: path,
           size_bytes: file.size,
           mime_type: file.type,
-          ...meta,
+          width,
+          height,
+          duration_sec: duration,
         });
 
         setUploads((prev) => prev.map((u, idx) => idx === i ? { ...u, progress: "done" } : u));
