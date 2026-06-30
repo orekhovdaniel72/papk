@@ -259,7 +259,7 @@ export function ResumeEditor({
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={item.signedUrl} alt={item.asset_name} className="mb-3 aspect-video w-full rounded-lg object-cover" draggable={false} />
                     ) : item.asset_type === "video" && item.signedUrl ? (
-                      <video src={item.signedUrl} className="mb-3 aspect-video w-full rounded-lg object-cover" muted preload="metadata" />
+                      <video src={item.signedUrl} className="mb-3 aspect-video w-full rounded-lg object-cover" controls muted preload="metadata" />
                     ) : null}
                     <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Подпись</label>
                     <Textarea
