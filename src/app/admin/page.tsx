@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Images, FileText, ArrowRight } from "lucide-react";
+import { Images, FileText, FolderOpen, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
@@ -18,8 +18,8 @@ const sections = [
     cta: "Перейти в медиатеку",
   },
   {
-    href: "/admin/resumes",
-    icon: FileText,
+    href: "/admin/projects",
+    icon: FolderOpen,
     title: "Проекты",
     description: "Собирай тематические подборки работ для будущих резюме.",
     cta: "Открыть проекты",

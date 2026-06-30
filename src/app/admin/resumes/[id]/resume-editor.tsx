@@ -95,9 +95,12 @@ export function ResumeEditor({
   async function handleAddFromProject() {
     if (!selectedProjectId || !selectedAssetIds.length) return;
 
+    const newIds = selectedAssetIds.filter((id) => !items.some((i) => i.asset_id === id));
+    if (newIds.length === 0) return;
+
     const result = await addResumeItems(
       resume.id,
-      selectedAssetIds.map((assetId) => ({ projectId: selectedProjectId, assetId }))
+      newIds.map((assetId) => ({ projectId: selectedProjectId, assetId }))
     );
     if (result.error) {
       setStatus(result.error);
@@ -106,7 +109,7 @@ export function ResumeEditor({
 
     const nextItems = await listResumeItems(resume.id);
     setItems(nextItems);
-    setStatus(`Добавлено ${selectedAssetIds.length} работ(ы)`);
+    setStatus(`Добавлено ${newIds.length} работ(ы)`);
     setSelectedAssetIds([]);
     setIsPickerOpen(false);
   }
@@ -304,12 +307,19 @@ export function ResumeEditor({
                 <div className="grid gap-3 sm:grid-cols-2">
                   {projectItems.map((item) => {
                     const isSelected = selectedAssetIds.includes(item.asset_id);
+                    const alreadyAdded = items.some((i) => i.asset_id === item.asset_id);
                     return (
                       <button
                         key={item.id}
                         type="button"
-                        onClick={() => toggleAsset(item.asset_id)}
-                        className={`rounded-xl border p-2 text-left ${isSelected ? "border-primary" : "border-border/70"}`}
+                        onClick={alreadyAdded ? undefined : () => toggleAsset(item.asset_id)}
+                        className={`rounded-xl border p-2 text-left ${
+                          alreadyAdded
+                            ? "opacity-40 cursor-not-allowed border-border/70"
+                            : isSelected
+                            ? "border-primary"
+                            : "border-border/70"
+                        }`}
                       >
                         {item.signedUrl ? (
                           item.asset_type === "image" ? (
