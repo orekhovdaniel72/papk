@@ -1,1 +1,1 @@
-@AGENTS.md
+@CLINE.md
