@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Images, FileText, Link2, ArrowRight } from "lucide-react";
+import { Images, FileText, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
@@ -20,16 +20,16 @@ const sections = [
   {
     href: "/admin/resumes",
     icon: FileText,
-    title: "Резюме",
-    description: "Собирай подборки из медиатеки под каждую вакансию.",
-    cta: "Мои резюме",
+    title: "Проекты",
+    description: "Собирай тематические подборки работ для будущих резюме.",
+    cta: "Открыть проекты",
   },
   {
-    href: "/admin/links",
-    icon: Link2,
-    title: "Ссылки",
-    description: "Создавай защищённые ссылки для конкретного получателя.",
-    cta: "Управлять ссылками",
+    href: "/admin/resumes",
+    icon: FileText,
+    title: "Резюме",
+    description: "Собирай подборки из проектов под каждую вакансию.",
+    cta: "Мои резюме",
   },
 ];
 
@@ -83,8 +83,7 @@ export default async function AdminPage() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Медиатека, редактор резюме и управление ссылками появятся в следующих
-        этапах.
+        Проекты и резюме теперь доступны в админке и готовы к наполнению.
       </p>
     </div>
   );

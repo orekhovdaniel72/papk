@@ -29,6 +29,27 @@ async function getUser() {
   return { supabase, user };
 }
 
+export async function getProject(id: string): Promise<Project | null> {
+  const { supabase, user } = await getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("projects")
+    .select("id, title, description, created_at")
+    .eq("id", id)
+    .eq("owner_id", user.id)
+    .single();
+
+  if (error || !data) return null;
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    created_at: data.created_at,
+    item_count: 0,
+  };
+}
+
 export async function listProjects(): Promise<Project[]> {
   const { supabase, user } = await getUser();
   if (!user) return [];

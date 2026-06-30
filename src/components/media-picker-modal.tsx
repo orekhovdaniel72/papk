@@ -28,16 +28,28 @@ export function MediaPickerModal({ open, onClose, excludedIds, onConfirm }: Medi
 
   useEffect(() => {
     if (!open) return;
-    setLoading(true);
-    setSelected(new Set());
-    listAssets().then((data) => { setAssets(data); setLoading(false); });
+
+    const timer = window.setTimeout(() => {
+      setLoading(true);
+      setSelected(new Set());
+      void listAssets().then((data) => {
+        setAssets(data);
+        setLoading(false);
+      });
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [open]);
 
   function toggle(id: string) {
     if (excludedIds.includes(id)) return;
     setSelected((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   }
