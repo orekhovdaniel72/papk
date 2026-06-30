@@ -123,9 +123,10 @@ export async function duplicateProject(id: string): Promise<{ id?: string; error
     .eq("project_id", id);
 
   if (items?.length) {
-    await supabase.from("project_items").insert(
+    const { error: itemsErr } = await supabase.from("project_items").insert(
       items.map((i) => ({ project_id: copy.id, ...i }))
     );
+    if (itemsErr) return { error: itemsErr.message };
   }
 
   revalidatePath("/admin/projects");
@@ -165,7 +166,8 @@ export async function addProjectItems(
   projectId: string,
   assetIds: string[]
 ): Promise<{ error?: string }> {
-  const { supabase } = await getUser();
+  const { supabase, user } = await getUser();
+  if (!user) return { error: "Не авторизован" };
 
   const { data: existing } = await supabase
     .from("project_items")
@@ -186,7 +188,8 @@ export async function addProjectItems(
 }
 
 export async function removeProjectItem(itemId: string): Promise<{ error?: string }> {
-  const { supabase } = await getUser();
+  const { supabase, user } = await getUser();
+  if (!user) return { error: "Не авторизован" };
   const { error } = await supabase.from("project_items").delete().eq("id", itemId);
   if (error) return { error: error.message };
   return {};
@@ -195,10 +198,15 @@ export async function removeProjectItem(itemId: string): Promise<{ error?: strin
 export async function reorderProjectItems(
   items: { id: string; position: number }[]
 ): Promise<{ error?: string }> {
-  const { supabase } = await getUser();
-  await Promise.all(items.map(({ id, position }) =>
-    supabase.from("project_items").update({ position }).eq("id", id)
-  ));
+  const { supabase, user } = await getUser();
+  if (!user) return { error: "Не авторизован" };
+  const updates = await Promise.all(
+    items.map(({ id, position }) =>
+      supabase.from("project_items").update({ position }).eq("id", id)
+    )
+  );
+  const failed = updates.find((r) => r.error);
+  if (failed?.error) return { error: failed.error.message };
   return {};
 }
 
@@ -206,7 +214,8 @@ export async function updateProjectItemCaption(
   itemId: string,
   caption: string | null
 ): Promise<{ error?: string }> {
-  const { supabase } = await getUser();
+  const { supabase, user } = await getUser();
+  if (!user) return { error: "Не авторизован" };
   const { error } = await supabase.from("project_items").update({ caption }).eq("id", itemId);
   if (error) return { error: error.message };
   return {};
