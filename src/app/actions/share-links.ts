@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export type ShareLink = {
   id: string;
@@ -121,7 +122,7 @@ export async function resolveShareLink(slug: string): Promise<{
   link?: ShareLink & { resume_id: string };
   error?: string;
 }> {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("share_links")
     .select("*")
@@ -139,6 +140,6 @@ export async function resolveShareLink(slug: string): Promise<{
 }
 
 export async function incrementViewCount(linkId: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   await supabase.rpc("increment_share_link_view_count", { link_id: linkId });
 }
