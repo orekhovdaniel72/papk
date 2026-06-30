@@ -31,17 +31,38 @@ function mediaType(file: File): "image" | "video" {
 
 function getMediaMeta(file: File): Promise<{ width?: number; height?: number; duration?: number }> {
   return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+
     if (mediaType(file) === "image") {
       const img = new Image();
-      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-      img.onerror = () => resolve({});
-      img.src = URL.createObjectURL(file);
+      const timer = setTimeout(() => { URL.revokeObjectURL(url); resolve({}); }, 5000);
+      img.onload = () => {
+        clearTimeout(timer);
+        URL.revokeObjectURL(url);
+        resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      };
+      img.onerror = () => {
+        clearTimeout(timer);
+        URL.revokeObjectURL(url);
+        resolve({});
+      };
+      img.src = url;
     } else {
       const video = document.createElement("video");
-      video.onloadedmetadata = () =>
+      video.preload = "metadata";
+      const timer = setTimeout(() => { URL.revokeObjectURL(url); resolve({}); }, 5000);
+      video.onloadedmetadata = () => {
+        clearTimeout(timer);
+        URL.revokeObjectURL(url);
         resolve({ width: video.videoWidth, height: video.videoHeight, duration: video.duration });
-      video.onerror = () => resolve({});
-      video.src = URL.createObjectURL(file);
+      };
+      video.onerror = () => {
+        clearTimeout(timer);
+        URL.revokeObjectURL(url);
+        resolve({});
+      };
+      video.src = url;
+      video.load();
     }
   });
 }
@@ -149,8 +170,10 @@ export function UploadZone() {
   }
 
   function onChange(e: ChangeEvent<HTMLInputElement>) {
-    if (e.target.files?.length) uploadFiles(e.target.files);
+    if (!e.target.files?.length) return;
+    const files = Array.from(e.target.files); // snapshot до сброса инпута
     e.target.value = "";
+    uploadFiles(files);
   }
 
   return (
