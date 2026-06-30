@@ -15,8 +15,6 @@ export type MediaAsset = {
   description: string;
   created_at: string;
   signedUrl?: string;
-  projectCount: number;
-  resumeCount: number;
 };
 
 /** Возвращает список медиафайлов владельца с подписанными URL. */
@@ -27,7 +25,7 @@ export async function listAssets(): Promise<MediaAsset[]> {
 
   const { data, error } = await supabase
     .from("media_assets")
-    .select("id, name, type, storage_path, size_bytes, mime_type, tags, description, created_at, project_items(count), resume_items(count)")
+    .select("id, name, type, storage_path, size_bytes, mime_type, tags, description, created_at")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -37,8 +35,6 @@ export async function listAssets(): Promise<MediaAsset[]> {
   const assets = await Promise.all(
     data.map(async (a) => ({
       ...a,
-      projectCount: (a.project_items as unknown as [{ count: number }])[0]?.count ?? 0,
-      resumeCount: (a.resume_items as unknown as [{ count: number }])[0]?.count ?? 0,
       signedUrl: await getSignedUrl(a.storage_path).catch(() => undefined),
     }))
   );
