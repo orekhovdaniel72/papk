@@ -148,24 +148,27 @@ export async function duplicateResume(id: string): Promise<{ id?: string; error?
     supabase.from("resume_items").select("project_id,asset_id,position,caption").eq("resume_id", id),
   ]);
 
-  await Promise.all([
+  const [contactsResult, itemsResult] = await Promise.all([
     contacts?.length
       ? supabase.from("resume_contacts").insert(contacts.map((c) => ({ resume_id: copy.id, ...c })))
-      : Promise.resolve(),
+      : Promise.resolve({ error: null }),
     items?.length
       ? supabase.from("resume_items").insert(items.map((i) => ({ resume_id: copy.id, ...i })))
-      : Promise.resolve(),
+      : Promise.resolve({ error: null }),
   ]);
+  if (contactsResult.error) return { error: contactsResult.error.message };
+  if (itemsResult.error) return { error: itemsResult.error.message };
 
   revalidatePath("/admin/resumes");
   return { id: copy.id };
 }
 
 export async function listResumeContacts(resumeId: string): Promise<ResumeContact[]> {
-  const { supabase } = await getUser();
+  const { supabase, user } = await getUser();
+  if (!user) return [];
   const { data } = await supabase
     .from("resume_contacts")
-    .select("*")
+    .select("id, resume_id, label, value, type, position")
     .eq("resume_id", resumeId)
     .order("position");
   return (data ?? []) as ResumeContact[];
@@ -175,7 +178,8 @@ export async function saveResumeContacts(
   resumeId: string,
   contacts: { label: string; value: string; type: string }[]
 ): Promise<{ error?: string }> {
-  const { supabase } = await getUser();
+  const { supabase, user } = await getUser();
+  if (!user) return { error: "Не авторизован" };
   await supabase.from("resume_contacts").delete().eq("resume_id", resumeId);
 
   if (contacts.length > 0) {
@@ -190,7 +194,8 @@ export async function saveResumeContacts(
 }
 
 export async function listResumeItems(resumeId: string): Promise<ResumeItem[]> {
-  const { supabase } = await getUser();
+  const { supabase, user } = await getUser();
+  if (!user) return [];
 
   const { data, error } = await supabase
     .from("resume_items")
@@ -224,7 +229,8 @@ export async function addResumeItems(
   resumeId: string,
   items: { projectId: string; assetId: string }[]
 ): Promise<{ error?: string }> {
-  const { supabase } = await getUser();
+  const { supabase, user } = await getUser();
+  if (!user) return { error: "Не авторизован" };
 
   const { data: existing } = await supabase
     .from("resume_items")
@@ -250,7 +256,8 @@ export async function addResumeItems(
 }
 
 export async function removeResumeItem(itemId: string): Promise<{ error?: string }> {
-  const { supabase } = await getUser();
+  const { supabase, user } = await getUser();
+  if (!user) return { error: "Не авторизован" };
   const { error } = await supabase.from("resume_items").delete().eq("id", itemId);
   if (error) return { error: error.message };
   return {};
@@ -259,10 +266,15 @@ export async function removeResumeItem(itemId: string): Promise<{ error?: string
 export async function reorderResumeItems(
   items: { id: string; position: number }[]
 ): Promise<{ error?: string }> {
-  const { supabase } = await getUser();
-  await Promise.all(items.map(({ id, position }) =>
-    supabase.from("resume_items").update({ position }).eq("id", id)
-  ));
+  const { supabase, user } = await getUser();
+  if (!user) return { error: "Не авторизован" };
+  const updates = await Promise.all(
+    items.map(({ id, position }) =>
+      supabase.from("resume_items").update({ position }).eq("id", id)
+    )
+  );
+  const failed = updates.find((r) => r.error);
+  if (failed?.error) return { error: failed.error.message };
   return {};
 }
 
@@ -270,7 +282,8 @@ export async function updateResumeItemCaption(
   itemId: string,
   caption: string | null
 ): Promise<{ error?: string }> {
-  const { supabase } = await getUser();
+  const { supabase, user } = await getUser();
+  if (!user) return { error: "Не авторизован" };
   const { error } = await supabase.from("resume_items").update({ caption }).eq("id", itemId);
   if (error) return { error: error.message };
   return {};
