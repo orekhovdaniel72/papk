@@ -40,5 +40,5 @@ export default async function PublicResumePage({
   const resume = await getPublicResume(link.resume_id);
   if (!resume) notFound();
 
-  return <ResumeView resume={resume} />;
+  return <ResumeView resume={resume} slug={slug} />;
 }

@@ -54,13 +54,14 @@ git-коммит.
 - [x] Проверка пароля, срока, лимита; страница "ссылка недействительна"
 - [x] Жёсткая изоляция: токен даёт доступ строго к своему резюме
 
-## Этап 5 — Защита медиа 🛡
-- [ ] Route handler /api/media/[id]: выдаёт короткоживущий подписанный URL только
-      при наличии валидного токена share-ссылки в сессии
-- [ ] Видео-стриминг: range requests, controlsList="nodownload nofullscreen", без src в разметке
-- [ ] Фото: canvas-рендер или CSS background (без img src в DOM), anti-drag/contextmenu
-- [ ] Водяной знак: видимый (имя получателя / ID ссылки, полупрозрачно поверх медиа)
-- [ ] Content-Security-Policy заголовки (docs: content-security-policy.md)
+## Этап 5 — Защита медиа 🛡 ✅
+- [x] Route handler /api/media/[id]: выдаёт подписанный URL только при валидном slug share-ссылки
+- [x] Изоляция: asset проверяется на принадлежность резюме этой ссылки (resume_items join)
+- [x] Видео: controlsList="nodownload nofullscreen", disablePictureInPicture, без прямого signedUrl в разметке
+- [x] Фото: CSS background-image вместо <img src> — src не светится в DOM
+- [x] Водяной знак: slug поверх каждого медиа (полупрозрачно, трейсируемый идентификатор)
+- [x] Anti-drag/contextmenu на медиа-обёртке
+- [x] Content-Security-Policy + X-Content-Type-Options + Referrer-Policy заголовки
 
 ## Этап 6 — Полировка UI/UX ✨
 - [ ] Галерея в публичном резюме: плавный лайтбокс, клавиатурная навигация

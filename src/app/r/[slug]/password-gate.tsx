@@ -57,7 +57,7 @@ export function PasswordGate({
     setLoading(false);
   }
 
-  if (resume) return <ResumeView resume={resume} />;
+  if (resume) return <ResumeView resume={resume} slug={slug} />;
 
   return (
     <main className="flex min-h-screen items-center justify-center p-6">

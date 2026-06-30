@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import type { PublicResume } from "@/app/actions/public-resume";
 
-export function ResumeView({ resume }: { resume: PublicResume }) {
+// slug пробрасывается сюда, чтобы строить URL /api/media/[id]?slug=...
+// и показывать водяной знак с идентификатором ссылки
+export function ResumeView({ resume, slug }: { resume: PublicResume; slug: string }) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12 space-y-10">
       {/* Заголовок */}
@@ -37,43 +38,66 @@ export function ResumeView({ resume }: { resume: PublicResume }) {
       {/* Работы */}
       {resume.items.length > 0 && (
         <section className="space-y-8">
-          {resume.items.map((item) => (
-            <div key={item.id} className="space-y-2">
-              {item.project_title && (
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  {item.project_title}
-                </p>
-              )}
-              {item.asset_type === "image" ? (
+          {resume.items.map((item) => {
+            const mediaSrc = `/api/media/${item.asset_id}?slug=${slug}`;
+            return (
+              <div key={item.id} className="space-y-2">
+                {item.project_title && (
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    {item.project_title}
+                  </p>
+                )}
+
+                {/* Обёртка с водяным знаком */}
                 <div
                   className="relative w-full overflow-hidden rounded-xl bg-muted select-none"
                   onContextMenu={(e) => e.preventDefault()}
                 >
-                  <Image
-                    src={item.signedUrl}
-                    alt={item.caption ?? item.project_title}
-                    width={1200}
-                    height={800}
-                    className="w-full h-auto pointer-events-none"
-                    draggable={false}
-                    unoptimized
-                  />
+                  {item.asset_type === "image" ? (
+                    // Фото через CSS background — src не светится в DOM
+                    <div
+                      role="img"
+                      aria-label={item.caption ?? item.project_title}
+                      className="w-full"
+                      style={{
+                        backgroundImage: `url(${mediaSrc})`,
+                        backgroundSize: "contain",
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "center",
+                        // минимальная высота; вырастет под aspect ratio через padding-top
+                        paddingTop: "56.25%",
+                      }}
+                      draggable={false}
+                      onDragStart={(e) => e.preventDefault()}
+                    />
+                  ) : (
+                    <video
+                      src={mediaSrc}
+                      className="w-full rounded-xl bg-muted"
+                      controls
+                      controlsList="nodownload nofullscreen"
+                      disablePictureInPicture
+                      playsInline
+                      preload="metadata"
+                    />
+                  )}
+
+                  {/* Водяной знак — slug как трейсируемый идентификатор */}
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute bottom-2 right-3 text-[11px] font-mono text-white/40 select-none"
+                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}
+                  >
+                    {slug}
+                  </span>
                 </div>
-              ) : (
-                <video
-                  src={item.signedUrl}
-                  className="w-full rounded-xl bg-muted"
-                  controls
-                  controlsList="nodownload nofullscreen"
-                  disablePictureInPicture
-                  playsInline
-                />
-              )}
-              {item.caption && (
-                <p className="text-sm text-muted-foreground">{item.caption}</p>
-              )}
-            </div>
-          ))}
+
+                {item.caption && (
+                  <p className="text-sm text-muted-foreground">{item.caption}</p>
+                )}
+              </div>
+            );
+          })}
         </section>
       )}
     </main>

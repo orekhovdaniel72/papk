@@ -1,7 +1,6 @@
 "use server";
 
 import { createServiceClient } from "@/lib/supabase/service";
-import { getSignedUrl } from "@/lib/storage";
 
 export type PublicResumeContact = {
   label: string;
@@ -15,7 +14,8 @@ export type PublicResumeItem = {
   caption: string | null;
   asset_type: "image" | "video";
   project_title: string;
-  signedUrl: string;
+  // asset_id используется клиентом для построения URL /api/media/[id]?slug=...
+  asset_id: string;
 };
 
 export type PublicResume = {
@@ -32,28 +32,25 @@ export async function getPublicResume(resumeId: string): Promise<PublicResume | 
     db.from("resumes").select("title, about").eq("id", resumeId).single(),
     db.from("resume_contacts").select("label, value, type").eq("resume_id", resumeId).order("position"),
     db.from("resume_items")
-      .select("id, position, caption, asset_id, media_assets(type, storage_path), projects(title)")
+      .select("id, position, caption, asset_id, media_assets(type), projects(title)")
       .eq("resume_id", resumeId)
       .order("position"),
   ]);
 
   if (!resume) return null;
 
-  const resolvedItems: PublicResumeItem[] = await Promise.all(
-    (items ?? []).map(async (item) => {
-      const a = item.media_assets as unknown as { type: string; storage_path: string } | null;
-      const p = item.projects as unknown as { title: string } | null;
-      const signedUrl = a?.storage_path ? await getSignedUrl(a.storage_path).catch(() => "") : "";
-      return {
-        id: item.id,
-        position: item.position,
-        caption: item.caption,
-        asset_type: (a?.type ?? "image") as "image" | "video",
-        project_title: p?.title ?? "",
-        signedUrl,
-      };
-    })
-  );
+  const resolvedItems: PublicResumeItem[] = (items ?? []).map((item) => {
+    const a = item.media_assets as unknown as { type: string } | null;
+    const p = item.projects as unknown as { title: string } | null;
+    return {
+      id: item.id,
+      position: item.position,
+      caption: item.caption,
+      asset_type: (a?.type ?? "image") as "image" | "video",
+      project_title: p?.title ?? "",
+      asset_id: item.asset_id,
+    };
+  });
 
   return {
     title: resume.title,
