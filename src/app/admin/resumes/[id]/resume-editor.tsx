@@ -283,7 +283,7 @@ export function ResumeEditor({
           <DialogHeader>
             <DialogTitle>Добавить работы из проектов</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+          <div className="grid gap-4 md:grid-cols-[240px_1fr]">
             <div className="space-y-2">
               {projects.map((project) => (
                 <button
@@ -304,7 +304,7 @@ export function ResumeEditor({
               ) : projectItems.length === 0 ? (
                 <p className="py-16 text-center text-sm text-muted-foreground">В проекте нет медиа</p>
               ) : (
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-3">
                   {projectItems.map((item) => {
                     const isSelected = selectedAssetIds.includes(item.asset_id);
                     const alreadyAdded = items.some((i) => i.asset_id === item.asset_id);
@@ -329,7 +329,7 @@ export function ResumeEditor({
                             <video src={item.signedUrl} className="mb-2 aspect-video w-full rounded-lg object-cover" muted preload="metadata" />
                           )
                         ) : null}
-                        <div className="text-sm font-medium">{item.asset_name}</div>
+                        <p className="truncate text-xs text-muted-foreground">{item.asset_name}</p>
                       </button>
                     );
                   })}
