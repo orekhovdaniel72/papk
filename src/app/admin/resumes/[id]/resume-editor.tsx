@@ -279,7 +279,7 @@ export function ResumeEditor({
       </Card>
 
       <Dialog open={isPickerOpen} onOpenChange={(value) => !value && setIsPickerOpen(false)}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="sm:max-w-5xl lg:max-w-6xl">
           <DialogHeader>
             <DialogTitle>Добавить работы из проектов</DialogTitle>
           </DialogHeader>
@@ -304,7 +304,7 @@ export function ResumeEditor({
               ) : projectItems.length === 0 ? (
                 <p className="py-16 text-center text-sm text-muted-foreground">В проекте нет медиа</p>
               ) : (
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {projectItems.map((item) => {
                     const isSelected = selectedAssetIds.includes(item.asset_id);
                     const alreadyAdded = items.some((i) => i.asset_id === item.asset_id);
@@ -313,20 +313,20 @@ export function ResumeEditor({
                         key={item.id}
                         type="button"
                         onClick={alreadyAdded ? undefined : () => toggleAsset(item.asset_id)}
-                        className={`rounded-xl border p-2 text-left ${
+                        className={`rounded-xl border p-1.5 text-left transition-transform ${
                           alreadyAdded
                             ? "opacity-40 cursor-not-allowed border-border/70"
                             : isSelected
                             ? "border-primary"
-                            : "border-border/70"
+                            : "border-border/70 hover:scale-[1.02]"
                         }`}
                       >
                         {item.signedUrl ? (
                           item.asset_type === "image" ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={item.signedUrl} alt={item.asset_name} className="mb-2 aspect-video w-full rounded-lg object-cover" draggable={false} />
+                            <img src={item.signedUrl} alt={item.asset_name} className="mb-1.5 aspect-video w-full rounded-lg object-cover" draggable={false} />
                           ) : (
-                            <video src={item.signedUrl} className="mb-2 aspect-video w-full rounded-lg object-cover" muted preload="metadata" />
+                            <video src={item.signedUrl} className="mb-1.5 aspect-video w-full rounded-lg object-cover" controls muted preload="metadata" />
                           )
                         ) : null}
                         <p className="truncate text-xs text-muted-foreground">{item.asset_name}</p>
