@@ -8,10 +8,8 @@ import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  // Избегаем рассинхрона SSR/клиента: до маунта рендерим нейтральную иконку.
-  React.useEffect(() => setMounted(true), []);
+  // useSyncExternalStore: server → false, client → true. Без useEffect, без каскадных ре-рендеров.
+  const mounted = React.useSyncExternalStore(() => () => {}, () => true, () => false);
 
   const isDark = mounted && resolvedTheme === "dark";
 
