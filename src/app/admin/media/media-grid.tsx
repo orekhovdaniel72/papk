@@ -137,24 +137,24 @@ function AssetCard({ asset }: { asset: MediaAsset }) {
       </div>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="w-[min(92vw,1100px)] max-w-6xl overflow-hidden">
           <DialogHeader>
             <DialogTitle>{asset.name}</DialogTitle>
           </DialogHeader>
 
-          <div className="max-h-[70vh] overflow-auto rounded-xl bg-muted/30 p-2">
+          <div className="max-h-[78vh] overflow-hidden rounded-xl bg-muted/30 p-2">
             {asset.type === "image" && asset.signedUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={asset.signedUrl}
                 alt={asset.name}
-                className="mx-auto max-h-[70vh] w-full rounded-lg object-contain"
+                className="mx-auto h-auto max-h-[74vh] max-w-full rounded-lg object-contain"
                 draggable={false}
               />
             ) : asset.type === "video" && asset.signedUrl ? (
               <video
                 src={asset.signedUrl}
-                className="mx-auto max-h-[70vh] w-full rounded-lg bg-black"
+                className="mx-auto h-auto max-h-[74vh] max-w-full rounded-lg bg-black object-contain"
                 controls
                 controlsList="nodownload"
                 playsInline
