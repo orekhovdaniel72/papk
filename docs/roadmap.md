@@ -13,21 +13,29 @@ git-коммит.
 - [x] Dev-сервер запускается (HTTP 200)
 - [x] Git-репозиторий + первый коммит
 
-## Этап 1 — Каркас и визуал 🔶 (в работе)
+## Этап 1 — Каркас и визуал ✅
 - [x] Базовый лейаут, тема (светлая/тёмная, next-themes), типографика Geist
 - [x] Личный лендинг художника (имя крупно, представление, контакт)
-- [x] Страница входа /login — UI-заглушка
+- [x] Страница входа /login — форма с реальной авторизацией
 - [x] «Войти» убрано из шапки, скрытая точка в подвале для художника
-- [ ] Supabase: завести проект, env-ключи, server/browser клиенты
-- [ ] Настоящая авторизация /login → кабинет (email + пароль)
-- [ ] Деплой текущего состояния на Vercel → живой URL
+- [x] Supabase: проект заведён, env-ключи, server/browser клиенты
+- [x] Авторизация /login → кабинет (email + пароль, signInWithPassword)
+- [x] Деплой на Vercel → живой URL
+- [x] Proxy (middleware) — защита /admin, редирект неавторизованных на /login
 
-## Этап 2 — Медиатека 📁
-- [ ] Схема БД: таблица media_assets (id, owner, name, type, size, tags, created_at)
-- [ ] Cloudflare R2: завести бакет, env-ключи, server-side upload через подписанные URL
-- [ ] Кабинет: загрузка фото (jpg/png/webp) и видео (mp4/mov)
-- [ ] Сетка медиатеки: превью, теги, описание, удаление
-- [ ] Видео-превью в кабинете без отдачи оригинала
+## Этап 2 — Медиатека ✅
+- [x] Схема БД: таблица `media_assets` (id, owner_id, name, type, size_bytes, mime_type, width, height, duration_sec, tags, description, created_at)
+- [x] RLS: только владелец видит и управляет своими файлами
+- [x] Supabase Storage: приватный bucket `media`, политики owner_upload / owner_select / owner_delete
+- [x] Производительность: индекс на `owner_id`, RLS policy с `(select auth.uid())` вместо per-row вычисления
+- [x] Кабинет: загрузка фото (jpg/png/webp/gif/heic/avif/tif) и видео (mp4/mov/webm/avi/mkv...)
+- [x] Drag-and-drop + клик для выбора, валидация типов, прогресс/ошибки по файлу
+- [x] Сетка медиатеки: превью изображений, видео-превью при наведении, удаление с подтверждением
+- [x] Подписанные URL (TTL 1 час), через server action — файлы никогда не публичны
+- [x] Метаданные: автоизвлечение width/height для фото, duration_sec для видео
+- [x] Фикс: FileList snapshot до сброса input (Chrome мутирует FileList при input.value="")
+- [x] Фикс: video.preload="metadata" + video.load() + 5s timeout в getMediaMeta (Windows)
+- [ ] ~~Cloudflare R2~~ — отложено: Supabase Storage покрывает текущие нужды на бесплатном тире
 
 ## Этап 3 — Конструктор резюме 📝
 - [ ] Схема БД: resumes, resume_items (resume_id, asset_id, position, caption)

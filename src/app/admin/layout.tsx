@@ -13,6 +13,8 @@ export const metadata: Metadata = {
 const navItems = [
   { href: "/admin", label: "Обзор", icon: Images },
   { href: "/admin/media", label: "Медиатека", icon: Images },
+  { href: "/admin/projects", label: "Проекты", icon: Images },
+  { href: "/admin/resumes", label: "Резюме", icon: Images },
 ];
 
 export default function AdminLayout({
